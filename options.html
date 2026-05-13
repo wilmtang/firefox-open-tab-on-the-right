@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -122,22 +123,29 @@
             font-weight: 500;
         }
 
-        .success { color: var(--success-color); }
-        .error { color: var(--error-color); }
+        .success {
+            color: var(--success-color);
+        }
+
+        .error {
+            color: var(--error-color);
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>Extension Settings</h1>
-        
+
         <div class="setting-group">
             <label for="shortcut">Open New Tab to the Right</label>
             <div class="input-wrapper">
                 <input type="text" id="shortcut" placeholder="e.g. Alt+Shift+T">
             </div>
             <p class="hint">
-                Use modifiers like <code>Ctrl</code>, <code>Alt</code>, <code>Shift</code>, and <code>MacCtrl</code> (Cmd on Mac).<br>
-                Example: <code>MacCtrl+Alt+T</code> or <code>Alt+Shift+T</code>.
+                Use modifiers: <code>Ctrl</code> (Ctrl on Win/Linux), <code>Alt</code> (Option on Mac),
+                <code>Shift</code>, <code>Command</code> (⌘ on Mac).<br>
+                Example: <code>Command+Alt+T</code> (Mac) or <code>Ctrl+Alt+T</code> (Win/Linux).
             </p>
         </div>
 
@@ -146,4 +154,5 @@
     </div>
     <script src="options.js"></script>
 </body>
+
 </html>

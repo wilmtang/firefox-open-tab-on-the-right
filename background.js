@@ -1,5 +1,4 @@
 function openTabToRight() {
-  console.log('Executing open-tab-right action');
   browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
     const activeTab = tabs[0];
     if (activeTab) {
@@ -7,19 +6,24 @@ function openTabToRight() {
         index: activeTab.index + 1,
         windowId: activeTab.windowId
       });
-      console.log('New tab created to the right of index', activeTab.index);
     }
   });
 }
 
+// Set default shortcut in storage on install
 browser.runtime.onInstalled.addListener(() => {
-  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-  const defaultShortcut = isMac ? 'Command+Alt+T' : 'Ctrl+Alt+T';
-  browser.storage.local.set({ shortcut: defaultShortcut });
+  browser.runtime.getPlatformInfo().then((info) => {
+    const defaultShortcut = info.os === 'mac' ? 'Command+Alt+T' : 'Ctrl+Alt+T';
+    browser.storage.local.get('shortcut').then((res) => {
+      // Only set default if not already configured
+      if (!res.shortcut) {
+        browser.storage.local.set({ shortcut: defaultShortcut });
+      }
+    });
+  });
 });
 
 browser.commands.onCommand.addListener((command) => {
-  console.log('Command received:', command);
   if (command === "open-tab-right") {
     openTabToRight();
   }
@@ -30,5 +34,3 @@ browser.runtime.onMessage.addListener((message) => {
     openTabToRight();
   }
 });
-
-

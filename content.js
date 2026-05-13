@@ -1,63 +1,63 @@
-let currentShortcut = {
-    key: 't',
-    ctrl: false,
-    alt: true,
-    shift: false,
-    meta: true // Default for Mac: Command+Alt+T
-};
+// Shortcut state — will be populated from storage before use
+let currentShortcut = null;
 
-// Initialize shortcut from storage
-function updateShortcut(shortcutString) {
-    if (!shortcutString) return;
-    
-    const parts = shortcutString.toLowerCase().split('+');
-    currentShortcut = {
-        key: parts[parts.length - 1],
-        ctrl: parts.includes('ctrl') || parts.includes('macctrl'),
-        alt: parts.includes('alt'),
-        shift: parts.includes('shift'),
-        meta: parts.includes('command') || parts.includes('macctrl')
-    };
+// Parse a shortcut string like "Command+Alt+T" or "Ctrl+Alt+T"
+// into a matcher object for keyboard events
+function parseShortcut(shortcutString) {
+  if (!shortcutString) return null;
+
+  const parts = shortcutString.split('+');
+  const key = parts[parts.length - 1].toLowerCase();
+  const modifiers = parts.slice(0, -1).map(m => m.toLowerCase());
+
+  return {
+    key,
+    // "Command" in Firefox shortcut syntax = metaKey (⌘ on Mac)
+    // "MacCtrl" in Firefox shortcut syntax = ctrlKey (the physical Control key on Mac)
+    // "Ctrl" = ctrlKey on Windows/Linux, metaKey mapping not used
+    ctrl: modifiers.includes('ctrl') || modifiers.includes('macctrl'),
+    alt: modifiers.includes('alt'),
+    shift: modifiers.includes('shift'),
+    meta: modifiers.includes('command'),
+  };
 }
 
+// Load shortcut from storage
 browser.storage.local.get('shortcut').then(res => {
-    if (res.shortcut) {
-        updateShortcut(res.shortcut);
-    } else {
-        // Use default based on platform if not set
-        const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-        if (isMac) {
-            updateShortcut('Command+Alt+T');
-        } else {
-            updateShortcut('Ctrl+Alt+T');
-        }
-    }
+  if (res.shortcut) {
+    currentShortcut = parseShortcut(res.shortcut);
+  }
+  // If storage is empty, we leave currentShortcut as null.
+  // The browser.commands API will still handle the default shortcut;
+  // the content script fallback just won't activate until storage is set.
 });
 
-// Listen for storage changes
+// Listen for storage changes (e.g. user changes shortcut in options)
 browser.storage.onChanged.addListener((changes) => {
-    if (changes.shortcut) {
-        updateShortcut(changes.shortcut.newValue);
-    }
+  if (changes.shortcut) {
+    currentShortcut = parseShortcut(changes.shortcut.newValue);
+  }
 });
 
-// Capture the keydown event at the capture phase to override page listeners
+// Capture the keydown event at the capture phase to intercept
+// before editors or other page scripts can swallow it
 window.addEventListener('keydown', (event) => {
-    const key = event.key.toLowerCase();
-    
-    const isMatch = 
-        key === currentShortcut.key &&
-        event.ctrlKey === currentShortcut.ctrl &&
-        event.altKey === currentShortcut.alt &&
-        event.shiftKey === currentShortcut.shift &&
-        event.metaKey === currentShortcut.meta;
+  if (!currentShortcut) return;
 
-    if (isMatch) {
-        // Prevent the event from reaching the editor or page
-        event.preventDefault();
-        event.stopPropagation();
-        
-        // Send message to background to open the tab
-        browser.runtime.sendMessage({ action: 'open-tab-right' });
-    }
-}, true); // Use capture phase
+  const key = event.key.toLowerCase();
+
+  const isMatch =
+    key === currentShortcut.key &&
+    event.ctrlKey === currentShortcut.ctrl &&
+    event.altKey === currentShortcut.alt &&
+    event.shiftKey === currentShortcut.shift &&
+    event.metaKey === currentShortcut.meta;
+
+  if (isMatch) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    browser.runtime.sendMessage({ action: 'open-tab-right' });
+  }
+}, true); // capture phase
