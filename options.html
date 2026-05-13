@@ -19,6 +19,14 @@
             --border-color: #ced4da;
             --success-color: #008744;
             --error-color: #d70022;
+            --warning-bg: #fff3cd;
+            --warning-border: #ffc107;
+            --warning-text: #856404;
+            --recording-color: #0060df;
+            --recording-bg: rgba(0, 96, 223, 0.06);
+            --recording-border: #0060df;
+            --disabled-bg: #f0f0f4;
+            --disabled-text: #999;
         }
 
         body {
@@ -59,25 +67,233 @@
             color: var(--text-secondary);
         }
 
-        .input-wrapper {
-            position: relative;
+        /* ── Shortcut recorder ── */
+        .shortcut-recorder-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
         }
 
-        input[type="text"] {
-            width: 100%;
+        .shortcut-display {
+            flex: 1;
             padding: 12px;
-            font-size: 16px;
-            border: 1px solid var(--border-color);
+            font-size: 15px;
+            font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+            border: 2px solid var(--border-color);
             border-radius: 8px;
-            box-sizing: border-box;
-            transition: border-color 0.2s, box-shadow 0.2s;
+            background: var(--card-bg);
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            min-height: 20px;
+            transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+            user-select: none;
+            cursor: default;
             outline: none;
-            font-family: inherit;
         }
 
-        input[type="text"]:focus {
-            border-color: var(--primary-color);
+        .shortcut-display.recording {
+            border-color: var(--recording-border);
+            background: var(--recording-bg);
             box-shadow: 0 0 0 3px rgba(0, 96, 223, 0.15);
+            animation: pulse-border 1.5s ease-in-out infinite;
+        }
+
+        .shortcut-display.disabled {
+            background: var(--disabled-bg);
+            color: var(--disabled-text);
+            border-color: #e0e0e0;
+        }
+
+        .shortcut-display .placeholder {
+            color: var(--text-secondary);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+
+        .shortcut-display .recording-label {
+            color: var(--recording-color);
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        @keyframes pulse-border {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(0, 96, 223, 0.15); }
+            50% { box-shadow: 0 0 0 3px rgba(0, 96, 223, 0.3); }
+        }
+
+        /* Key badges inside the display */
+        .key-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            background: #f0f0f4;
+            border: 1px solid #d0d0d7;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-color);
+            box-shadow: 0 1px 1px rgba(0,0,0,0.06);
+            margin-right: 4px;
+            line-height: 1.3;
+        }
+
+        .key-separator {
+            margin: 0 2px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            border: none;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s, opacity 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f4;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #e0e0e7;
+        }
+
+        .btn-danger-outline {
+            background: transparent;
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+        }
+
+        .btn-danger-outline:hover {
+            background: rgba(215, 0, 34, 0.06);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-record {
+            min-width: 90px;
+        }
+
+        .btn-record.is-recording {
+            background-color: var(--error-color);
+            color: white;
+            border-color: var(--error-color);
+        }
+
+        .btn-record.is-recording:hover {
+            background-color: #b5001c;
+        }
+
+        /* ── Toggle ── */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .toggle-row label {
+            margin-bottom: 0;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc;
+            border-radius: 24px;
+            transition: background-color 0.25s;
+        }
+
+        .toggle-slider::before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.25s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--primary-color);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        /* ── Status / toast ── */
+        #status {
+            margin-top: 16px;
+            font-size: 14px;
+            text-align: center;
+            min-height: 20px;
+            font-weight: 500;
+            padding: 0;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        #status.success {
+            color: var(--success-color);
+            background: rgba(0, 135, 68, 0.07);
+            padding: 10px;
+        }
+
+        #status.error {
+            color: var(--error-color);
+            background: rgba(215, 0, 34, 0.07);
+            padding: 10px;
+        }
+
+        #status.warning {
+            color: var(--warning-text);
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            padding: 10px;
         }
 
         .hint {
@@ -94,41 +310,33 @@
             font-family: monospace;
         }
 
-        button {
-            width: 100%;
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: 600;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
+        /* ── Validation error inline ── */
+        .validation-msg {
+            font-size: 13px;
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            line-height: 1.4;
+            display: none;
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
+        .validation-msg.show {
+            display: block;
         }
 
-        button:active {
-            transform: scale(0.98);
-        }
-
-        #status {
-            margin-top: 16px;
-            font-size: 14px;
-            text-align: center;
-            min-height: 20px;
-            font-weight: 500;
-        }
-
-        .success {
-            color: var(--success-color);
-        }
-
-        .error {
+        .validation-msg.error {
             color: var(--error-color);
+            background: rgba(215, 0, 34, 0.07);
+        }
+
+        .actions-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .actions-row .btn {
+            flex: 1;
         }
     </style>
 </head>
@@ -138,18 +346,33 @@
         <h1>Extension Settings</h1>
 
         <div class="setting-group">
-            <label for="shortcut">Open New Tab to the Right</label>
-            <div class="input-wrapper">
-                <input type="text" id="shortcut" placeholder="e.g. Alt+Shift+T">
+            <div class="toggle-row">
+                <label for="shortcut-enabled">Enable Keyboard Shortcut</label>
+                <div class="toggle-switch">
+                    <input type="checkbox" id="shortcut-enabled" checked>
+                    <span class="toggle-slider"></span>
+                </div>
             </div>
+
+            <label for="shortcut-recorder" id="shortcut-label">Open New Tab to the Right</label>
+            <div class="shortcut-recorder-wrapper">
+                <div class="shortcut-display" id="shortcut-display" tabindex="0">
+                    <span class="placeholder">No shortcut set</span>
+                </div>
+                <button class="btn btn-secondary btn-record" id="record-btn" type="button">Record</button>
+            </div>
+            <div class="validation-msg" id="validation-msg"></div>
             <p class="hint">
-                Use modifiers: <code>Ctrl</code> (Ctrl on Win/Linux), <code>Alt</code> (Option on Mac),
-                <code>Shift</code>, <code>Command</code> (⌘ on Mac).<br>
-                Example: <code>Command+Alt+T</code> (Mac) or <code>Ctrl+Alt+T</code> (Win/Linux).
+                Click <strong>Record</strong> and press your desired key combination.<br>
+                Requires a modifier (<code>Ctrl</code>, <code>Alt</code>, <code>Command</code>) plus a letter, number, or function key.<br>
+                Press <strong>Escape</strong> while recording to cancel. Press <strong>Backspace</strong> to clear.
             </p>
         </div>
 
-        <button id="save">Save Shortcut</button>
+        <div class="actions-row">
+            <button class="btn btn-primary" id="save" type="button">Save Shortcut</button>
+            <button class="btn btn-danger-outline" id="reset-default" type="button">Reset Default</button>
+        </div>
         <div id="status"></div>
     </div>
     <script src="options.js"></script>

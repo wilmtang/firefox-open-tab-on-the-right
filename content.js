@@ -1,5 +1,6 @@
 // Shortcut state — will be populated from storage before use
 let currentShortcut = null;
+let shortcutEnabled = true;
 
 // Parse a shortcut string like "Command+Alt+T" or "Ctrl+Alt+T"
 // into a matcher object for keyboard events
@@ -22,10 +23,13 @@ function parseShortcut(shortcutString) {
   };
 }
 
-// Load shortcut from storage
-browser.storage.local.get('shortcut').then(res => {
+// Load shortcut and enabled state from storage
+browser.storage.local.get(['shortcut', 'shortcutEnabled']).then(res => {
   if (res.shortcut) {
     currentShortcut = parseShortcut(res.shortcut);
+  }
+  if (res.shortcutEnabled === false) {
+    shortcutEnabled = false;
   }
   // If storage is empty, we leave currentShortcut as null.
   // The browser.commands API will still handle the default shortcut;
@@ -37,12 +41,15 @@ browser.storage.onChanged.addListener((changes) => {
   if (changes.shortcut) {
     currentShortcut = parseShortcut(changes.shortcut.newValue);
   }
+  if (changes.shortcutEnabled) {
+    shortcutEnabled = changes.shortcutEnabled.newValue !== false;
+  }
 });
 
 // Capture the keydown event at the capture phase to intercept
 // before editors or other page scripts can swallow it
 window.addEventListener('keydown', (event) => {
-  if (!currentShortcut) return;
+  if (!shortcutEnabled || !currentShortcut) return;
 
   const key = event.key.toLowerCase();
 
