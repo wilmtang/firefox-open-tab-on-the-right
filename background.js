@@ -4,7 +4,17 @@ function openTabToRight() {
     if (activeTab) {
       browser.tabs.create({
         index: activeTab.index + 1,
-        windowId: activeTab.windowId
+        windowId: activeTab.windowId,
+        pinned: activeTab.pinned
+      }).then((newTab) => {
+        if (activeTab.groupId !== undefined && activeTab.groupId !== -1) {
+          if (typeof browser.tabs.group === 'function') {
+            browser.tabs.group({
+              tabIds: newTab.id,
+              groupId: activeTab.groupId
+            }).catch(console.error);
+          }
+        }
       });
     }
   });
