@@ -3,6 +3,10 @@
   "name": "Open Tab on the Right",
   "version": "1.0",
   "description": "Opens a new tab to the right of the current active tab with a customizable shortcut.",
+  "icons": {
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "permissions": [
     "tabs",
     "storage"
