@@ -33,6 +33,9 @@
             --success-bg: rgba(0, 135, 68, 0.07);
             --error-bg: rgba(215, 0, 34, 0.07);
             --card-shadow: rgba(0, 0, 0, 0.08);
+            --toggle-bg: #c0c0c7;
+            --toggle-bg-active: #0060df;
+            --toggle-knob: #ffffff;
         }
 
         @media (prefers-color-scheme: dark) {
@@ -61,6 +64,9 @@
                 --success-bg: rgba(48, 224, 96, 0.1);
                 --error-bg: rgba(255, 107, 107, 0.1);
                 --card-shadow: rgba(0, 0, 0, 0.3);
+                --toggle-bg: #56555e;
+                --toggle-bg-active: #45a1ff;
+                --toggle-knob: #ffffff;
             }
         }
 
@@ -331,6 +337,96 @@
             color: var(--error-color);
             background: var(--error-bg);
         }
+
+        /* ── Divider ── */
+        .settings-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 28px 0;
+        }
+
+        /* ── Toggle switch ── */
+        .toggle-setting {
+            margin-bottom: 0;
+        }
+
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .toggle-label-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .toggle-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .toggle-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+            margin-bottom: 0;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--toggle-bg);
+            border-radius: 24px;
+            transition: background-color 0.25s ease;
+        }
+
+        .toggle-slider::before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--toggle-knob);
+            border-radius: 50%;
+            transition: transform 0.25s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background-color: var(--toggle-bg-active);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
+
+        .toggle-switch input:focus-visible + .toggle-slider {
+            box-shadow: 0 0 0 3px rgba(0, 96, 223, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -366,7 +462,74 @@
                     Mac: <code>Cmd</code>, <code>Option</code> (Opt), <code>Ctrl</code>, <code>Shift</code>
                 </p>
             </div>
+
+            <div class="setting-group shortcut-item" data-command="move-tab-prev">
+                <label>Move Tab to the Left</label>
+                <div class="shortcut-recorder-wrapper">
+                    <div class="shortcut-input-container">
+                        <input type="text" class="shortcut-text-input" placeholder="Type a shortcut or record" spellcheck="false">
+                        <div class="shortcut-display-layer">
+                            <!-- Badges injected here -->
+                        </div>
+                        <div class="shortcut-inner-actions">
+                            <button class="icon-btn btn-reset" title="Reset to default">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            </button>
+                            <button class="icon-btn btn-clear" title="Clear shortcut">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-record" type="button">Record</button>
+                </div>
+                <div class="validation-msg"></div>
+                <p class="hint">
+                    Moves the current tab one spot backward (left).<br>
+                    Supports moving multiple selected tabs.
+                </p>
+            </div>
+
+            <div class="setting-group shortcut-item" data-command="move-tab-next">
+                <label>Move Tab to the Right</label>
+                <div class="shortcut-recorder-wrapper">
+                    <div class="shortcut-input-container">
+                        <input type="text" class="shortcut-text-input" placeholder="Type a shortcut or record" spellcheck="false">
+                        <div class="shortcut-display-layer">
+                            <!-- Badges injected here -->
+                        </div>
+                        <div class="shortcut-inner-actions">
+                            <button class="icon-btn btn-reset" title="Reset to default">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                            </button>
+                            <button class="icon-btn btn-clear" title="Clear shortcut">
+                                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary btn-record" type="button">Record</button>
+                </div>
+                <div class="validation-msg"></div>
+                <p class="hint">
+                    Moves the current tab one spot forward (right).<br>
+                    Supports moving multiple selected tabs.
+                </p>
+            </div>
             <!-- More shortcuts can be easily added here with data-command="command-name" -->
+        </div>
+
+        <hr class="settings-divider">
+
+        <div class="setting-group toggle-setting">
+            <div class="toggle-row">
+                <div class="toggle-label-group">
+                    <span class="toggle-label">Enable tab wrapping</span>
+                    <span class="toggle-description">When moving a tab past the start or end of the tab bar, wrap it around to the other side.</span>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="tab-wrap-toggle" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
         </div>
 
         <div id="status"></div>

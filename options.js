@@ -17,6 +17,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             navigator.userAgent?.toLowerCase().includes('mac');
     }
 
+    // ── Per-command storage key helpers ──
+    function storageKeyForCommand(commandName, suffix) {
+        if (commandName === 'open-tab-right') return suffix; // backwards compat
+        return `${suffix}_${commandName}`;
+    }
+
     const VALID_MODIFIERS = new Set(['Ctrl', 'Alt', 'Command', 'MacCtrl', 'Shift']);
     const PRIMARY_MODIFIERS = new Set(['Ctrl', 'Alt', 'Command', 'MacCtrl']);
 
@@ -122,16 +128,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             this.load();
         }
 
+        get shortcutKey() {
+            return storageKeyForCommand(this.commandName, 'shortcut');
+        }
+
+        get enabledKey() {
+            return storageKeyForCommand(this.commandName, 'shortcutEnabled');
+        }
+
         async load() {
-            const stored = await browser.storage.local.get(['shortcut', 'shortcutEnabled']);
+            const stored = await browser.storage.local.get([this.shortcutKey, this.enabledKey]);
             const cmds = await browser.commands.getAll();
             const cmd = cmds.find(c => c.name === this.commandName);
 
             // Backwards compatibility with previous disabled state
-            if (stored.shortcutEnabled === false) {
+            if (stored[this.enabledKey] === false) {
                 this.currentShortcut = '';
             } else {
-                this.currentShortcut = stored.shortcut ?? cmd?.shortcut ?? '';
+                this.currentShortcut = stored[this.shortcutKey] ?? cmd?.shortcut ?? '';
             }
             this.updateUI(this.currentShortcut);
         }
@@ -187,8 +201,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     shortcut: newShortcut
                 });
                 await browser.storage.local.set({
-                    shortcut: newShortcut,
-                    shortcutEnabled: newShortcut !== ''
+                    [this.shortcutKey]: newShortcut,
+                    [this.enabledKey]: newShortcut !== ''
                 });
                 this.currentShortcut = newShortcut;
                 this.updateUI(newShortcut);
@@ -324,4 +338,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         const cmdData = commands.find(c => c.name === cmdName);
         new ShortcutItem(el, cmdData);
     });
+
+    // ── Tab wrapping toggle ──
+    const wrapToggle = document.getElementById('tab-wrap-toggle');
+    if (wrapToggle) {
+        // Load current state safely
+        const stored = await browser.storage.local.get({ tabWrapEnabled: true });
+        wrapToggle.checked = stored && stored.tabWrapEnabled !== false;
+
+        wrapToggle.addEventListener('change', async () => {
+            await browser.storage.local.set({ tabWrapEnabled: wrapToggle.checked });
+            showStatus(
+                wrapToggle.checked ? 'Tab wrapping enabled.' : 'Tab wrapping disabled.',
+                'success'
+            );
+        });
+    }
 });

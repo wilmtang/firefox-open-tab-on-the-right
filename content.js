@@ -1,6 +1,14 @@
-// Shortcut state — will be populated from storage before use
-let currentShortcut = null;
-let shortcutEnabled = true;
+// ── Multi-command shortcut state ──
+// Maps command names to their parsed shortcut matcher and enabled state
+const commandShortcuts = {};
+
+// Commands we handle via content-script fallback
+const COMMANDS = ['open-tab-right', 'move-tab-prev', 'move-tab-next'];
+
+function storageKeyForCommand(commandName, suffix) {
+  if (commandName === 'open-tab-right') return suffix; // backwards compat
+  return `${suffix}_${commandName}`;
+}
 
 // Parse a shortcut string like "Command+Alt+T" or "Ctrl+Alt+T"
 // into a matcher object for keyboard events
@@ -23,48 +31,78 @@ function parseShortcut(shortcutString) {
   };
 }
 
-// Load shortcut and enabled state from storage
-browser.storage.local.get(['shortcut', 'shortcutEnabled']).then(res => {
-  if (res.shortcut) {
-    currentShortcut = parseShortcut(res.shortcut);
+// Load all command shortcuts and enabled states from storage
+function loadAllShortcuts() {
+  const keys = [];
+  for (const cmd of COMMANDS) {
+    keys.push(storageKeyForCommand(cmd, 'shortcut'));
+    keys.push(storageKeyForCommand(cmd, 'shortcutEnabled'));
   }
-  if (res.shortcutEnabled === false) {
-    shortcutEnabled = false;
-  }
-  // If storage is empty, we leave currentShortcut as null.
-  // The browser.commands API will still handle the default shortcut;
-  // the content script fallback just won't activate until storage is set.
-});
+
+  browser.storage.local.get(keys).then(res => {
+    for (const cmd of COMMANDS) {
+      const shortcutKey = storageKeyForCommand(cmd, 'shortcut');
+      const enabledKey = storageKeyForCommand(cmd, 'shortcutEnabled');
+
+      const shortcutValue = res[shortcutKey];
+      const enabledValue = res[enabledKey];
+
+      commandShortcuts[cmd] = {
+        parsed: shortcutValue ? parseShortcut(shortcutValue) : null,
+        enabled: enabledValue !== false,
+      };
+    }
+  });
+}
+
+// Initial load
+loadAllShortcuts();
 
 // Listen for storage changes (e.g. user changes shortcut in options)
 browser.storage.onChanged.addListener((changes) => {
-  if (changes.shortcut) {
-    currentShortcut = parseShortcut(changes.shortcut.newValue);
-  }
-  if (changes.shortcutEnabled) {
-    shortcutEnabled = changes.shortcutEnabled.newValue !== false;
+  for (const cmd of COMMANDS) {
+    const shortcutKey = storageKeyForCommand(cmd, 'shortcut');
+    const enabledKey = storageKeyForCommand(cmd, 'shortcutEnabled');
+
+    if (changes[shortcutKey]) {
+      if (!commandShortcuts[cmd]) {
+        commandShortcuts[cmd] = { parsed: null, enabled: true };
+      }
+      commandShortcuts[cmd].parsed = parseShortcut(changes[shortcutKey].newValue);
+    }
+    if (changes[enabledKey]) {
+      if (!commandShortcuts[cmd]) {
+        commandShortcuts[cmd] = { parsed: null, enabled: true };
+      }
+      commandShortcuts[cmd].enabled = changes[enabledKey].newValue !== false;
+    }
   }
 });
 
 // Capture the keydown event at the capture phase to intercept
 // before editors or other page scripts can swallow it
 window.addEventListener('keydown', (event) => {
-  if (!shortcutEnabled || !currentShortcut) return;
-
   const key = event.key.toLowerCase();
 
-  const isMatch =
-    key === currentShortcut.key &&
-    event.ctrlKey === currentShortcut.ctrl &&
-    event.altKey === currentShortcut.alt &&
-    event.shiftKey === currentShortcut.shift &&
-    event.metaKey === currentShortcut.meta;
+  for (const cmd of COMMANDS) {
+    const entry = commandShortcuts[cmd];
+    if (!entry || !entry.enabled || !entry.parsed) continue;
 
-  if (isMatch) {
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+    const sc = entry.parsed;
+    const isMatch =
+      key === sc.key &&
+      event.ctrlKey === sc.ctrl &&
+      event.altKey === sc.alt &&
+      event.shiftKey === sc.shift &&
+      event.metaKey === sc.meta;
 
-    browser.runtime.sendMessage({ action: 'open-tab-right' });
+    if (isMatch) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      browser.runtime.sendMessage({ action: cmd });
+      return; // Only fire the first match
+    }
   }
 }, true); // capture phase

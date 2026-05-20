@@ -31,6 +31,20 @@
         "mac": "Command+Alt+T"
       },
       "description": "Open new tab to the right"
+    },
+    "move-tab-prev": {
+      "suggested_key": {
+        "default": "Ctrl+Alt+Left",
+        "mac": "MacCtrl+Command+Left"
+      },
+      "description": "Move tab to the left"
+    },
+    "move-tab-next": {
+      "suggested_key": {
+        "default": "Ctrl+Alt+Right",
+        "mac": "MacCtrl+Command+Right"
+      },
+      "description": "Move tab to the right"
     }
   },
   "options_ui": {
