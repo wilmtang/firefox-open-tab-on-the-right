@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         let key = null;
 
         for (let p of parts) {
-            if (['ctrl', 'control'].includes(p)) mods.push(isMac() ? 'MacCtrl' : 'Ctrl');
+            if (['ctrl', 'control', 'macctrl'].includes(p)) mods.push(isMac() ? 'MacCtrl' : 'Ctrl');
             else if (['cmd', 'command', 'meta', 'win', 'windows'].includes(p)) mods.push('Command');
             else if (['alt', 'opt', 'option'].includes(p)) mods.push('Alt');
             else if (['shift'].includes(p)) mods.push('Shift');
@@ -151,7 +151,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         updateUI(shortcutString, isRecordingLive = false) {
-            this.input.value = shortcutString;
+            this.input.value = shortcutString ? shortcutString.replace(/MacCtrl/g, 'Ctrl') : '';
 
             if (isRecordingLive) {
                 this.input.classList.remove('has-badges');
