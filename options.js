@@ -123,9 +123,48 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             this.isRecording = false;
             this.pendingShortcut = '';
+            this.hint = this.container.querySelector('.hint');
+            this.isHoveringContainer = false;
+            this.isHoveringHint = false;
+            this.autoHideTimer = null;
+            this.bufferTimer = null;
 
             this.initEvents();
             this.load();
+        }
+
+        showTooltip() {
+            if (this.bufferTimer) {
+                clearTimeout(this.bufferTimer);
+                this.bufferTimer = null;
+            }
+            if (this.hint) {
+                this.hint.classList.add('visible');
+            }
+            if (!this.autoHideTimer) {
+                this.autoHideTimer = setTimeout(() => {
+                    this.autoHideTimer = null;
+                    if (!this.isHoveringHint) {
+                        this.hideTooltip(true);
+                    }
+                }, 1000);
+            }
+        }
+
+        hideTooltip(force = false) {
+            if (force || (!this.isHoveringContainer && !this.isHoveringHint)) {
+                if (this.autoHideTimer) {
+                    clearTimeout(this.autoHideTimer);
+                    this.autoHideTimer = null;
+                }
+                if (this.bufferTimer) {
+                    clearTimeout(this.bufferTimer);
+                    this.bufferTimer = null;
+                }
+                if (this.hint) {
+                    this.hint.classList.remove('visible');
+                }
+            }
         }
 
         get shortcutKey() {
@@ -328,6 +367,54 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const def = cmd?.shortcut || '';
                 this.saveShortcut(def);
             });
+
+            // Tooltip hover/focus management
+            if (this.hint) {
+                this.container.addEventListener('mouseenter', () => {
+                    this.isHoveringContainer = true;
+                    this.showTooltip();
+                });
+
+                this.container.addEventListener('mouseleave', () => {
+                    this.isHoveringContainer = false;
+                    if (this.bufferTimer) clearTimeout(this.bufferTimer);
+                    this.bufferTimer = setTimeout(() => {
+                        this.hideTooltip();
+                    }, 100);
+                });
+
+                this.hint.addEventListener('mouseenter', () => {
+                    this.isHoveringHint = true;
+                    if (this.autoHideTimer) {
+                        clearTimeout(this.autoHideTimer);
+                        this.autoHideTimer = null;
+                    }
+                    if (this.bufferTimer) {
+                        clearTimeout(this.bufferTimer);
+                        this.bufferTimer = null;
+                    }
+                });
+
+                this.hint.addEventListener('mouseleave', () => {
+                    this.isHoveringHint = false;
+                    if (this.bufferTimer) clearTimeout(this.bufferTimer);
+                    this.bufferTimer = setTimeout(() => {
+                        this.hideTooltip();
+                    }, 100);
+                });
+
+                this.input.addEventListener('focus', () => {
+                    this.showTooltip();
+                });
+
+                this.input.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        if (!this.isHoveringHint) {
+                            this.hideTooltip(true);
+                        }
+                    }, 100);
+                });
+            }
         }
     }
 
