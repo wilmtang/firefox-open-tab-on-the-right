@@ -29,9 +29,11 @@ To test this extension locally in your Firefox browser, follow these steps:
 ## ⚙️ Customizing the Shortcut
 
 1. Go to `about:addons` in Firefox.
-2. Find **"Open Tab on the Right"**.
-3. Click the three dots `...` and select **"Options"**.
-4. Enter your preferred shortcut (e.g., `Ctrl+Shift+Y`) and click **Save**.
+2. Click the **Gear Icon** (⚙️) in the top-right corner.
+3. Select **"Manage Extension Shortcuts"** from the dropdown menu.
+4. Find **"Open Tab on the Right"**.
+5. Click the three dots `...` and select **"Options"**.
+6. Enter your preferred shortcut (e.g., `Ctrl+Shift+Y`) and click **Save**.
    - *Valid modifiers:* `Ctrl`, `Alt`, `Shift`, `MacCtrl` (for Command on Mac).
 
 ## 📄 License
