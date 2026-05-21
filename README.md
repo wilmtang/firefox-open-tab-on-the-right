@@ -8,6 +8,12 @@ A lightweight Firefox extension that allows you to open a new tab immediately to
 - **Customizable Shortcuts**: Change the shortcut to whatever suits your workflow via the extension preferences.
 - **Modern UI**: A clean, premium settings page for easy configuration.
 
+## 🔒 Privacy & Permissions
+
+This extension requires the **"Access your data for all websites"** permission solely to ensure your keyboard shortcuts work reliably everywhere. 
+
+Without it, complex web apps (like Google Docs) could intercept and "swallow" your keystrokes, breaking the shortcuts. To prevent this, the extension listens for keystrokes early to guarantee they always trigger. **It does not collect or store any of your browsing data.**
+
 ## ⌨️ Default Shortcuts
 
 - **macOS**: `Cmd + Option + T`
