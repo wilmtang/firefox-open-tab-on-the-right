@@ -306,65 +306,26 @@
             padding: 10px;
         }
 
-        .hint {
-            position: absolute;
-            bottom: calc(100% + 12px);
-            left: 50%;
-            transform: translateX(-50%) translateY(8px);
-            width: max-content;
-            max-width: 290px;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            box-shadow: 0 8px 24px var(--card-shadow);
-            padding: 12px 16px;
-            border-radius: 8px;
+        .header-description {
             font-size: 12px;
+            color: var(--text-secondary);
             line-height: 1.5;
-            color: var(--text-color);
-            z-index: 100;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.2s;
-            pointer-events: auto;
-            white-space: normal;
-            margin: 0;
+            margin-top: -16px;
+            margin-bottom: 24px;
         }
 
-        .hint::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 6px;
-            border-style: solid;
-            border-color: var(--card-bg) transparent transparent transparent;
-        }
-
-        .hint::before {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 7px;
-            border-style: solid;
-            border-color: var(--border-color) transparent transparent transparent;
-            margin-top: 1px;
-            z-index: -1;
-        }
-
-        .hint.visible {
-            opacity: 1;
-            visibility: visible;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .hint code {
+        .header-description code {
             background: var(--code-bg);
             padding: 2px 4px;
             border-radius: 4px;
             font-family: monospace;
+        }
+
+        .shortcut-description {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            line-height: 1.4;
         }
 
         .validation-msg {
@@ -479,6 +440,11 @@
 <body>
     <div class="container">
         <h1>Extension Settings</h1>
+        <p class="header-description">
+            Requires a modifier plus a letter, number, or function key.<br>
+            Windows/Linux: <code>Ctrl</code>, <code>Alt</code>, <code>Shift</code><br>
+            Mac: <code>Cmd</code>, <code>Option</code> (Opt), <code>Ctrl</code>, <code>Shift</code>
+        </p>
 
         <div id="shortcuts-container">
             <!-- Shortcut items will be managed by JS based on data-command -->
@@ -498,12 +464,6 @@
                                 <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
-                        <p class="hint">
-                            Type a combination or click <strong>Record</strong>.<br>
-                            Requires a modifier plus a letter, number, or function key.<br>
-                            Windows/Linux: <code>Ctrl</code>, <code>Alt</code>, <code>Shift</code><br>
-                            Mac: <code>Cmd</code>, <code>Option</code> (Opt), <code>Ctrl</code>, <code>Shift</code>
-                        </p>
                     </div>
                     <button class="btn btn-secondary btn-record" type="button">Record</button>
                 </div>
@@ -526,17 +486,14 @@
                                 <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
-                        <p class="hint">
-                            Moves the current tab one spot backward (left).<br>
-                            Supports moving multiple selected tabs.<br>
-                            Requires a modifier plus a letter, number, or function key.<br>
-                            Windows/Linux: <code>Ctrl</code>, <code>Alt</code>, <code>Shift</code><br>
-                            Mac: <code>Cmd</code>, <code>Option</code> (Opt), <code>Ctrl</code>, <code>Shift</code>
-                        </p>
                     </div>
                     <button class="btn btn-secondary btn-record" type="button">Record</button>
                 </div>
                 <div class="validation-msg"></div>
+                <p class="shortcut-description">
+                    Moves the current tab one spot backward (left).<br>
+                    Supports moving multiple selected tabs.
+                </p>
             </div>
 
             <div class="setting-group shortcut-item" data-command="move-tab-next">
@@ -555,17 +512,14 @@
                                 <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
-                        <p class="hint">
-                            Moves the current tab one spot forward (right).<br>
-                            Supports moving multiple selected tabs.<br>
-                            Requires a modifier plus a letter, number, or function key.<br>
-                            Windows/Linux: <code>Ctrl</code>, <code>Alt</code>, <code>Shift</code><br>
-                            Mac: <code>Cmd</code>, <code>Option</code> (Opt), <code>Ctrl</code>, <code>Shift</code>
-                        </p>
                     </div>
                     <button class="btn btn-secondary btn-record" type="button">Record</button>
                 </div>
                 <div class="validation-msg"></div>
+                <p class="shortcut-description">
+                    Moves the current tab one spot forward (right).<br>
+                    Supports moving multiple selected tabs.
+                </p>
             </div>
             <!-- More shortcuts can be easily added here with data-command="command-name" -->
         </div>
