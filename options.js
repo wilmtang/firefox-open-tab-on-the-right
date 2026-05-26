@@ -162,13 +162,14 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
 
             if (!shortcutString && !isRecordingLive) {
-                this.displayLayer.innerHTML = '';
+                this.displayLayer.textContent = '';
                 return;
             }
 
             const parts = shortcutString.split('+');
-            const html = parts.map((part, i) => {
-                if (!part) return '';
+            this.displayLayer.textContent = '';
+            parts.forEach((part, i) => {
+                if (!part) return;
                 let displayPart = part;
                 if (isMac()) {
                     if (part === 'Command') displayPart = '⌘ Cmd';
@@ -176,12 +177,18 @@ document.addEventListener('DOMContentLoaded', async () => {
                     else if (part === 'MacCtrl') displayPart = '⌃ Ctrl';
                     else if (part === 'Shift') displayPart = '⇧ Shift';
                 }
-                const badge = `<span class="key-badge">${displayPart}</span>`;
-                const sep = i < parts.length - 1 && parts[i + 1] ? '<span class="key-separator">+</span>' : '';
-                return badge + sep;
-            }).join('');
+                const badge = document.createElement('span');
+                badge.className = 'key-badge';
+                badge.textContent = displayPart;
+                this.displayLayer.appendChild(badge);
 
-            this.displayLayer.innerHTML = html;
+                if (i < parts.length - 1 && parts[i + 1]) {
+                    const sep = document.createElement('span');
+                    sep.className = 'key-separator';
+                    sep.textContent = '+';
+                    this.displayLayer.appendChild(sep);
+                }
+            });
         }
 
         showError(msg) {
@@ -242,7 +249,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             this.hideError();
             this.input.focus();
             this.input.value = '';
-            this.displayLayer.innerHTML = '<span class="recording-label">Press keys...</span>';
+            this.displayLayer.textContent = '';
+            const label = document.createElement('span');
+            label.className = 'recording-label';
+            label.textContent = 'Press keys...';
+            this.displayLayer.appendChild(label);
             this.input.classList.add('has-badges'); // Show display layer visually correctly
         }
 
@@ -285,7 +296,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!res.key) {
                 const tmp = res.modifiers.join('+');
                 this.updateUI(tmp, true);
-                this.displayLayer.innerHTML = '<span class="recording-label">Press keys...</span>';
+                this.displayLayer.textContent = '';
+                const label = document.createElement('span');
+                label.className = 'recording-label';
+                label.textContent = 'Press keys...';
+                this.displayLayer.appendChild(label);
                 return;
             }
 

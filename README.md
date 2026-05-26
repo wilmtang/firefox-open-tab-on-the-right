@@ -42,6 +42,31 @@ To test this extension locally in your Firefox browser, follow these steps:
 6. Enter your preferred shortcut (e.g., `Ctrl+Shift+Y`) and click **Save**.
    - *Valid modifiers:* `Ctrl`, `Alt`, `Shift`, `MacCtrl` (for Command on Mac).
 
+## 🚀 Automated Releases (CD)
+
+This repository is configured to automatically package, lint, and submit new versions of the extension to the Mozilla Add-ons (AMO) portal via GitHub Actions.
+
+### How the Zip file is created
+You do not need to manually create or upload a zip file anymore. In the GitHub Actions workflow, the official Mozilla `web-ext` tool reads the exclusion rules defined in `web-ext-config.mjs` (which ensures files like `README.md`, `.git`, etc., are left out) and packages your extension into a zip file in the background before submitting it to the Mozilla API.
+
+### How to release a new version
+
+1. **Update the version**: Increment the `"version"` string in your [manifest.json](file:///Users/zihaod/Library/CloudStorage/Dropbox/Dev/firefox-open-tab-on-the-right/manifest.json) (e.g., from `"1.0"` to `"1.1"`).
+2. **Commit and push the change** to your main branch:
+   ```bash
+   git add manifest.json
+   git commit -m "Bump version to 1.1"
+   git push origin main
+   ```
+3. **Create and push a Git Tag**:
+   Create a release tag matching the pattern `v*` (e.g., `v1.1`) and push it:
+   ```bash
+   git tag v1.1
+   git push origin v1.1
+   ```
+
+Pushing this tag will automatically trigger the GitHub Actions workflow to build, lint, and submit the new version to the Mozilla Developer Portal.
+
 ## 📄 License
 
 MIT

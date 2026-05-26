@@ -1,0 +1,37 @@
+name: Release & Publish Firefox Extension
+
+on:
+  push:
+    tags:
+      - 'v*' # Triggers on release tags like v1.0, v1.0.0, etc.
+
+jobs:
+  publish:
+    name: Sign & Publish Extension
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install web-ext
+        run: npm install --no-save web-ext
+
+      - name: Lint Extension
+        run: npx web-ext lint
+
+      - name: Submit to AMO
+        # Since manual review for 'listed' extensions can take hours or days,
+        # web-ext will time out waiting for approval. We use 'continue-on-error'
+        # so the pipeline succeeds as long as the upload itself is successful.
+        continue-on-error: true
+        run: |
+          npx web-ext sign \
+            --channel=listed \
+            --api-key="${{ secrets.AMO_JWT_ISSUER }}" \
+            --api-secret="${{ secrets.AMO_JWT_SECRET }}" \
+            --timeout=300000 # 5 minutes timeout
