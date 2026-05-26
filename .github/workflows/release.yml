@@ -1,6 +1,7 @@
 name: Release & Publish Firefox Extension
 
 on:
+  workflow_dispatch:
   push:
     tags:
       - 'v*' # Triggers on release tags like v1.0, v1.0.0, etc.
