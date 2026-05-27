@@ -2,6 +2,21 @@
 
 A lightweight Firefox extension that allows you to open a new tab immediately to the right of your current active tab using a customizable keyboard shortcut.
 
+[![Install Extension](https://img.shields.io/badge/Firefox-Install%20Extension-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
+
+[![Mozilla Add-on Version](https://img.shields.io/amo/v/open-tab-on-the-right?color=orange&logo=firefox-browser&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
+[![Mozilla Add-on Users](https://img.shields.io/amo/users/open-tab-on-the-right?color=blue&logo=firefox-browser&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
+[![Mozilla Add-on Weekly Downloads](https://img.shields.io/amo/dw/open-tab-on-the-right?color=green&logo=firefox-browser&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
+[![Mozilla Add-on Rating](https://img.shields.io/amo/rating/open-tab-on-the-right?color=yellow&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
+
+## 📥 Installation
+
+Get it on the official **Firefox Add-ons (AMO)** store:
+
+👉 **[Install Open Tab on the Right](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)**
+
+---
+
 ## 🚀 Features
 
 - **Intuitive Tab Placement**: Unlike the default Firefox behavior, this extension ensures the new tab opens exactly to the right of where you are working.
