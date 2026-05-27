@@ -52,7 +52,7 @@
   },
   "browser_specific_settings": {
     "gecko": {
-      "id": "open-tab-on-the-right@zihaod.dev",
+      "id": "{61a45ae9-6056-42fc-b02b-44c36005271d}",
       "data_collection_permissions": {
         "required": ["none"]
       }
