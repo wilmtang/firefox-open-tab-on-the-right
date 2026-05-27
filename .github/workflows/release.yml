@@ -31,11 +31,25 @@ jobs:
         run: npx web-ext lint
 
       - name: Submit to AMO
-        continue-on-error: true
         run: |
+          set +e
           npx web-ext sign \
             --channel=listed \
             --api-key="${{ secrets.AMO_JWT_ISSUER }}" \
             --api-secret="${{ secrets.AMO_JWT_SECRET }}" \
             --timeout=300000 \
-            --amo-metadata=.github/workflows/amo-metadata.json
+            --amo-metadata=.github/workflows/amo-metadata.json 2>&1 | tee web-ext.log
+          
+          EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          
+          if [ $EXIT_CODE -ne 0 ]; then
+            if grep -qi -E "timeout|too long|pending" web-ext.log; then
+              echo "⚠️ Submission failed due to timeout or pending validation on AMO. This is expected if automated validation takes longer than 5 minutes."
+              echo "Please check the AMO Developer Hub to verify the status."
+              exit 0
+            else
+              echo "❌ Submission failed with an error."
+              exit $EXIT_CODE
+            fi
+          fi
