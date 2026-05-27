@@ -37,4 +37,5 @@ jobs:
             --channel=listed \
             --api-key="${{ secrets.AMO_JWT_ISSUER }}" \
             --api-secret="${{ secrets.AMO_JWT_SECRET }}" \
-            --timeout=300000
+            --timeout=300000 \
+            --amo-metadata=.github/workflows/amo-metadata.json
