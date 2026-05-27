@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# pre-push hook to ensure tag matches manifest.json version
+
+while read local_ref local_sha remote_ref remote_sha
+do
+    # Check if a tag starting with 'v' is being pushed
+    if [[ $local_ref == refs/tags/v* ]]; then
+        TAG_NAME=${local_ref#refs/tags/}
+        VERSION=${TAG_NAME#v}
+        
+        if [ ! -f "manifest.json" ]; then
+            continue
+        fi
+
+        # Extract the version from manifest.json
+        MANIFEST_VERSION=$(grep -o '"version": *"[^"]*"' manifest.json | head -1 | awk -F '"' '{print $4}')
+        
+        if [ "$VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "⚠️ Tag version ($VERSION) does not match manifest.json version ($MANIFEST_VERSION)."
+            echo "🔄 Auto-updating manifest.json and retagging..."
+            
+            # Replace version in manifest.json safely using awk
+            awk -v ver="$VERSION" '/"version": *"[^"]*"/ {sub(/"version": *"[^"]*"/, "\"version\": \"" ver "\"")}1' manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+            
+            git add manifest.json
+            git commit -m "Bump version to $VERSION"
+            
+            # Delete old tag and retag the new commit
+            git tag -d "$TAG_NAME"
+            git tag "$TAG_NAME"
+            
+            # Automatically push the new commit and tag
+            CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+            echo "🚀 Pushing updated branch ($CURRENT_BRANCH) and tag ($TAG_NAME) to origin..."
+            git push --no-verify origin "$CURRENT_BRANCH" "$TAG_NAME"
+            
+            echo "✅ Successfully updated and pushed!"
+            echo "⚠️  Aborting the original push command so it doesn't overwrite with the old tag."
+            echo "   (You can safely ignore the 'error: failed to push some refs' message below)"
+            exit 1
+        fi
+    fi
+done
+
+exit 0
