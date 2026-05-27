@@ -369,4 +369,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             );
         });
     }
+
+    // ── Open as child tab toggle ──
+    const childTabToggle = document.getElementById('child-tab-toggle');
+    if (childTabToggle) {
+        const stored = await browser.storage.local.get({ openAsChildTab: false });
+        childTabToggle.checked = stored && stored.openAsChildTab === true;
+
+        childTabToggle.addEventListener('change', async () => {
+            await browser.storage.local.set({ openAsChildTab: childTabToggle.checked });
+            showStatus(
+                childTabToggle.checked ? 'Child tab enabled.' : 'Child tab disabled.',
+                'success'
+            );
+        });
+    }
 });

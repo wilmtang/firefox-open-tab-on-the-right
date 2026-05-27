@@ -5,6 +5,7 @@ A lightweight Firefox extension that allows you to open a new tab immediately to
 ## 🚀 Features
 
 - **Intuitive Tab Placement**: Unlike the default Firefox behavior, this extension ensures the new tab opens exactly to the right of where you are working.
+- **Child Tab Support**: Fully compatible with vertical tab managers like **Tree Style Tab** and **Sidebery**. Enable the "Open as child tab" setting to automatically nest your newly created tabs under the active parent tab.
 - **Customizable Shortcuts**: Change the shortcut to whatever suits your workflow via the extension preferences.
 - **Modern UI**: A clean, premium settings page for easy configuration.
 

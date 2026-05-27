@@ -1,12 +1,18 @@
 function openTabToRight() {
-  browser.tabs.query({ active: true, currentWindow: true }).then((tabs) => {
+  browser.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
     const activeTab = tabs[0];
     if (activeTab) {
-      browser.tabs.create({
+      const store = await browser.storage.local.get({ openAsChildTab: false });
+      const options = {
         index: activeTab.index + 1,
         windowId: activeTab.windowId,
         pinned: activeTab.pinned
-      }).then((newTab) => {
+      };
+      if (store.openAsChildTab) {
+        options.openerTabId = activeTab.id;
+      }
+
+      browser.tabs.create(options).then((newTab) => {
         if (activeTab.groupId !== undefined && activeTab.groupId !== -1) {
           if (typeof browser.tabs.group === 'function') {
             browser.tabs.group({
