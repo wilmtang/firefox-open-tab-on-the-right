@@ -26,14 +26,14 @@ Get it on the official **Firefox Add-ons (AMO)** store:
 
 ## 🔒 Privacy & Permissions
 
-This extension requires the **"Access your data for all websites"** permission solely to ensure your keyboard shortcuts work reliably everywhere. 
+This extension requests only the **`storage`** permission, used to save your settings (tab-wrapping and "open as child tab"). It does **not** request access to your browsing data and does not collect, store, or transmit anything.
 
-Without it, complex web apps (like Google Docs) could intercept and "swallow" your keystrokes, breaking the shortcuts. To prevent this, the extension listens for keystrokes early to guarantee they always trigger. **It does not collect or store any of your browsing data.**
+Keyboard shortcuts are handled entirely through Firefox's built-in [Commands API](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/commands), so no content scripts run on the pages you visit.
 
 ## ⌨️ Default Shortcuts
 
-- **macOS**: `Cmd + Option + T`
-- **Windows / Linux**: `Ctrl + Alt + T`
+- **Open tab to the right** — macOS: `Cmd + Option + T`, Windows / Linux: `Ctrl + Alt + T`
+- **Move tab left / right** — no default; assign your own in the extension's options (this avoids clashing with OS shortcuts like workspace switching).
 
 ## 🛠️ Local Installation & Testing
 
@@ -57,6 +57,22 @@ To test this extension locally in your Firefox browser, follow these steps:
 5. Click the three dots `...` and select **"Options"**.
 6. Enter your preferred shortcut (e.g., `Ctrl+Shift+Y`) and click **Save**.
    - *Valid modifiers:* `Ctrl`, `Alt`, `Shift`, `MacCtrl` (for Command on Mac).
+
+## 🧪 Development & Testing
+
+Install the dev dependencies once with `npm install`, then:
+
+| Command | What it does |
+| --- | --- |
+| `npm test` | Fast unit tests for the tab-move logic (`tabmove.js`), no browser needed. |
+| `npm run test:e2e` | End-to-end tests that launch real Firefox via **geckodriver** + **selenium-webdriver**, install the packaged extension, and exercise the options UI, settings persistence, command registration, and tab reordering. |
+| `npm run lint` | Runs `web-ext lint` against the extension. |
+| `npm run build` | Packages the extension into `web-ext-artifacts/`. |
+
+E2E notes:
+- A real Firefox install is required (`geckodriver` downloads its own driver binary on first run).
+- Set `HEADLESS=0` to watch the tests run in a visible window; point `FIREFOX_BIN` at a specific Firefox binary if it isn't auto-detected.
+- Firefox handles the keyboard *shortcuts* in browser chrome, which WebDriver can't synthesize — so the open-tab/move-tab **keystrokes** aren't fired in e2e. That wiring is covered by the command-registration assertions plus the `tabmove.js` unit tests.
 
 ## 🚀 Automated Releases (CD)
 

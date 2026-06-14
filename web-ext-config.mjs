@@ -2,14 +2,18 @@ export default {
   // Global options
   ignoreFiles: [
     "README.md",
-    "firefox-open-tab-on-the-right.zip",
+    "*.zip",
     ".gitignore",
     ".git",
+    ".githooks",
     "web-ext-artifacts",
+    "node_modules",
     ".github",
     "package.json",
     "package-lock.json",
-    "web-ext-config.mjs"
+    "web-ext-config.mjs",
+    "tabmove.test.js",
+    "e2e"
   ],
   // Command-specific options
   build: {
