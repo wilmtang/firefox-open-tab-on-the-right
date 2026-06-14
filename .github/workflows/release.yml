@@ -2,11 +2,6 @@ name: Release & Publish Firefox Extension
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version'
-        required: false
-        default: 'v2.0'
   push:
     tags:
       - 'v*'
@@ -24,8 +19,11 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install web-ext
-        run: npm install --no-save web-ext
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
 
       - name: Lint Extension
         run: npx web-ext lint
@@ -44,9 +42,12 @@ jobs:
           set -e
           
           if [ $EXIT_CODE -ne 0 ]; then
-            if grep -qi -E "timeout|too long|pending" web-ext.log; then
-              echo "⚠️ Submission failed due to timeout or pending validation on AMO. This is expected if automated validation takes longer than 5 minutes."
-              echo "Please check the AMO Developer Hub to verify the status."
+            # Only a genuine client-side timeout is treated as non-fatal: the
+            # upload succeeded but AMO validation outran our wait. Any other
+            # failure (including rejected/invalid submissions) must fail the job.
+            if grep -qi -E "timeout|timed out|exceeded .* seconds" web-ext.log; then
+              echo "⚠️ web-ext timed out waiting for AMO validation (upload likely succeeded)."
+              echo "Verify the status on the AMO Developer Hub."
               exit 0
             else
               echo "❌ Submission failed with an error."

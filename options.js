@@ -17,12 +17,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             navigator.userAgent?.toLowerCase().includes('mac');
     }
 
-    // ── Per-command storage key helpers ──
-    function storageKeyForCommand(commandName, suffix) {
-        if (commandName === 'open-tab-right') return suffix; // backwards compat
-        return `${suffix}_${commandName}`;
-    }
-
     const VALID_MODIFIERS = new Set(['Ctrl', 'Alt', 'Command', 'MacCtrl', 'Shift']);
     const PRIMARY_MODIFIERS = new Set(['Ctrl', 'Alt', 'Command', 'MacCtrl']);
 
@@ -128,25 +122,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             this.load();
         }
 
-        get shortcutKey() {
-            return storageKeyForCommand(this.commandName, 'shortcut');
-        }
-
-        get enabledKey() {
-            return storageKeyForCommand(this.commandName, 'shortcutEnabled');
-        }
-
         async load() {
-            const stored = await browser.storage.local.get([this.shortcutKey, this.enabledKey]);
+            // The native Commands API is the single source of truth, so the
+            // options page always reflects what Firefox actually has bound —
+            // even if it was changed via about:addons.
             const cmds = await browser.commands.getAll();
             const cmd = cmds.find(c => c.name === this.commandName);
-
-            // Backwards compatibility with previous disabled state
-            if (stored[this.enabledKey] === false) {
-                this.currentShortcut = '';
-            } else {
-                this.currentShortcut = stored[this.shortcutKey] ?? cmd?.shortcut ?? '';
-            }
+            this.currentShortcut = cmd?.shortcut ?? '';
             this.updateUI(this.currentShortcut);
         }
 
@@ -206,10 +188,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 await browser.commands.update({
                     name: this.commandName,
                     shortcut: newShortcut
-                });
-                await browser.storage.local.set({
-                    [this.shortcutKey]: newShortcut,
-                    [this.enabledKey]: newShortcut !== ''
                 });
                 this.currentShortcut = newShortcut;
                 this.updateUI(newShortcut);

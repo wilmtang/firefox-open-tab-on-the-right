@@ -10,16 +10,9 @@
   "permissions": [
     "storage"
   ],
-  "content_scripts": [
-    {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "run_at": "document_start",
-      "all_frames": true
-    }
-  ],
   "background": {
     "scripts": [
+      "tabmove.js",
       "background.js"
     ]
   },
@@ -32,23 +25,14 @@
       "description": "Open new tab to the right"
     },
     "move-tab-prev": {
-      "suggested_key": {
-        "default": "Ctrl+Alt+Left",
-        "mac": "MacCtrl+Command+Left"
-      },
       "description": "Move tab to the left"
     },
     "move-tab-next": {
-      "suggested_key": {
-        "default": "Ctrl+Alt+Right",
-        "mac": "MacCtrl+Command+Right"
-      },
       "description": "Move tab to the right"
     }
   },
   "options_ui": {
-    "page": "options.html",
-    "browser_style": true
+    "page": "options.html"
   },
   "browser_specific_settings": {
     "gecko": {

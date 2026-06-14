@@ -1,0 +1,18 @@
+{
+  "name": "firefox-open-tab-on-the-right",
+  "version": "2.1.0",
+  "description": "Firefox extension that opens a new tab to the right of the active tab, with customizable shortcuts and tab-moving commands.",
+  "private": true,
+  "scripts": {
+    "test": "node --test",
+    "test:e2e": "node --test e2e/extension.e2e.mjs",
+    "lint": "web-ext lint",
+    "build": "web-ext build"
+  },
+  "devDependencies": {
+    "geckodriver": "5.0.0",
+    "selenium-webdriver": "4.36.0",
+    "web-ext": "8.3.0"
+  },
+  "license": "MIT"
+}
