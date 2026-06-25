@@ -6,11 +6,16 @@
   "scripts": {
     "test": "node --test",
     "test:e2e": "node --test e2e/extension.e2e.mjs",
+    "test:e2e:chrome": "node --test e2e/chrome.e2e.mjs",
     "lint": "web-ext lint",
-    "build": "web-ext build"
+    "build": "web-ext build",
+    "build:firefox": "node build.mjs firefox",
+    "build:chrome": "node build.mjs chrome",
+    "build:all": "node build.mjs all"
   },
   "devDependencies": {
     "geckodriver": "5.0.0",
+    "puppeteer": "^25.2.1",
     "selenium-webdriver": "4.36.0",
     "web-ext": "8.3.0"
   },

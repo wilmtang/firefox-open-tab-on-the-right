@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const statusDiv = document.getElementById('status');
+    const isChrome = location.protocol === 'chrome-extension:';
 
     function showStatus(message, type) {
         statusDiv.textContent = message;
@@ -124,9 +125,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         async load() {
             // The native Commands API is the single source of truth, so the
-            // options page always reflects what Firefox actually has bound —
-            // even if it was changed via about:addons.
-            const cmds = await browser.commands.getAll();
+            // options page always reflects what the browser actually has bound —
+            // even if it was changed via about:addons (Firefox) or
+            // chrome://extensions/shortcuts (Chrome).
+            const cmds = await browserAPI.commands.getAll();
             const cmd = cmds.find(c => c.name === this.commandName);
             this.currentShortcut = cmd?.shortcut ?? '';
             this.updateUI(this.currentShortcut);
@@ -185,7 +187,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         async saveShortcut(newShortcut) {
             try {
-                await browser.commands.update({
+                await browserAPI.commands.update({
                     name: this.commandName,
                     shortcut: newShortcut
                 });
@@ -193,7 +195,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 this.updateUI(newShortcut);
                 showStatus(newShortcut ? 'Shortcut saved successfully.' : 'Shortcut cleared.', 'success');
             } catch (error) {
-                this.showError(`Firefox rejected this shortcut: ${error.message}`);
+                this.showError(`Browser rejected this shortcut: ${error.message}`);
                 this.updateUI(this.currentShortcut); // Revert
             }
         }
@@ -315,8 +317,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 e.preventDefault();
                 if (this.isRecording) this.stopRecording(false);
                 this.hideError();
-                await browser.commands.reset(this.commandName);
-                const cmds = await browser.commands.getAll();
+                await browserAPI.commands.reset(this.commandName);
+                const cmds = await browserAPI.commands.getAll();
                 const cmd = cmds.find(c => c.name === this.commandName);
                 const def = cmd?.shortcut || '';
                 this.saveShortcut(def);
@@ -324,23 +326,59 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Initialize all shortcuts
-    const commands = await browser.commands.getAll();
-    document.querySelectorAll('.shortcut-item').forEach(el => {
-        const cmdName = el.dataset.command;
-        const cmdData = commands.find(c => c.name === cmdName);
-        new ShortcutItem(el, cmdData);
-    });
+    // ── Chrome-specific UI adjustments ──
+    // Chrome does not support browser.commands.update() / reset() at runtime,
+    // so hide the shortcut recorder and show a link to chrome://extensions/shortcuts.
+    // Also hide the "Open as child tab" toggle (Tree Style Tab / Sidebery are Firefox-only).
+    if (isChrome) {
+        // Show the Chrome shortcuts notice
+        const chromeNotice = document.getElementById('chrome-shortcuts-notice');
+        if (chromeNotice) chromeNotice.classList.add('show');
+
+        // Hide the shortcut recorder items (they won't work on Chrome)
+        const shortcutsContainer = document.getElementById('shortcuts-container');
+        if (shortcutsContainer) shortcutsContainer.style.display = 'none';
+
+        // Hide the header description about shortcut keys
+        const headerDesc = document.querySelector('.header-description');
+        if (headerDesc) headerDesc.style.display = 'none';
+
+        // Hide the child tab section (Firefox-only feature)
+        const childTabSection = document.getElementById('child-tab-section');
+        if (childTabSection) childTabSection.style.display = 'none';
+        // Also hide the divider before it
+        const dividers = document.querySelectorAll('.settings-divider');
+        if (dividers.length >= 2) dividers[dividers.length - 1].style.display = 'none';
+
+        // Open Chrome shortcuts page when button is clicked
+        const openShortcutsBtn = document.getElementById('open-chrome-shortcuts');
+        if (openShortcutsBtn) {
+            openShortcutsBtn.addEventListener('click', () => {
+                // chrome:// URLs can't be opened via <a> links — use the tabs API
+                browserAPI.tabs.create({ url: 'chrome://extensions/shortcuts' });
+            });
+        }
+    }
+
+    // Initialize shortcut items (Firefox only — on Chrome the container is hidden)
+    if (!isChrome) {
+        const commands = await browserAPI.commands.getAll();
+        document.querySelectorAll('.shortcut-item').forEach(el => {
+            const cmdName = el.dataset.command;
+            const cmdData = commands.find(c => c.name === cmdName);
+            new ShortcutItem(el, cmdData);
+        });
+    }
 
     // ── Tab wrapping toggle ──
     const wrapToggle = document.getElementById('tab-wrap-toggle');
     if (wrapToggle) {
         // Load current state safely
-        const stored = await browser.storage.local.get({ tabWrapEnabled: true });
+        const stored = await browserAPI.storage.local.get({ tabWrapEnabled: true });
         wrapToggle.checked = stored && stored.tabWrapEnabled !== false;
 
         wrapToggle.addEventListener('change', async () => {
-            await browser.storage.local.set({ tabWrapEnabled: wrapToggle.checked });
+            await browserAPI.storage.local.set({ tabWrapEnabled: wrapToggle.checked });
             showStatus(
                 wrapToggle.checked ? 'Tab wrapping enabled.' : 'Tab wrapping disabled.',
                 'success'
@@ -348,18 +386,20 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // ── Open as child tab toggle ──
-    const childTabToggle = document.getElementById('child-tab-toggle');
-    if (childTabToggle) {
-        const stored = await browser.storage.local.get({ openAsChildTab: false });
-        childTabToggle.checked = stored && stored.openAsChildTab === true;
+    // ── Open as child tab toggle (Firefox only) ──
+    if (!isChrome) {
+        const childTabToggle = document.getElementById('child-tab-toggle');
+        if (childTabToggle) {
+            const stored = await browserAPI.storage.local.get({ openAsChildTab: false });
+            childTabToggle.checked = stored && stored.openAsChildTab === true;
 
-        childTabToggle.addEventListener('change', async () => {
-            await browser.storage.local.set({ openAsChildTab: childTabToggle.checked });
-            showStatus(
-                childTabToggle.checked ? 'Child tab enabled.' : 'Child tab disabled.',
-                'success'
-            );
-        });
+            childTabToggle.addEventListener('change', async () => {
+                await browserAPI.storage.local.set({ openAsChildTab: childTabToggle.checked });
+                showStatus(
+                    childTabToggle.checked ? 'Child tab enabled.' : 'Child tab disabled.',
+                    'success'
+                );
+            });
+        }
     }
 });

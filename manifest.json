@@ -12,6 +12,7 @@
   ],
   "background": {
     "scripts": [
+      "browser-polyfill.js",
       "tabmove.js",
       "background.js"
     ]

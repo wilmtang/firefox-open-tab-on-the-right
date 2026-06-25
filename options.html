@@ -432,6 +432,41 @@
         .toggle-switch input:focus-visible + .toggle-slider {
             box-shadow: 0 0 0 3px rgba(0, 96, 223, 0.3);
         }
+        /* ── Chrome-specific notice ── */
+        .chrome-notice {
+            display: none;
+            background: var(--warning-bg);
+            border: 1px solid var(--warning-border);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: var(--warning-text);
+            line-height: 1.5;
+        }
+
+        .chrome-notice.show {
+            display: block;
+        }
+
+        .chrome-notice-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .chrome-notice .btn {
+            margin-top: 12px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .chrome-notice .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .chrome-only-hide {
+            /* shown by default, hidden via JS on Chrome */
+        }
     </style>
 </head>
 <body>
@@ -442,6 +477,14 @@
             Windows/Linux: <code>Ctrl</code>, <code>Alt</code>, <code>Shift</code><br>
             Mac: <code>Cmd</code>, <code>Option</code> (Opt), <code>Ctrl</code>, <code>Shift</code>
         </p>
+
+        <div id="chrome-shortcuts-notice" class="chrome-notice">
+            <div class="chrome-notice-title">⌨️ Shortcut customization</div>
+            Chrome manages extension shortcuts in its own settings page.
+            Click the button below to open it.
+            <br>
+            <button class="btn" id="open-chrome-shortcuts" type="button">Open Shortcut Settings</button>
+        </div>
 
         <div id="shortcuts-container">
             <!-- Shortcut items will be managed by JS based on data-command -->
@@ -538,7 +581,7 @@
 
         <hr class="settings-divider">
 
-        <div class="setting-group toggle-setting">
+        <div class="setting-group toggle-setting chrome-only-hide" id="child-tab-section">
             <div class="toggle-row">
                 <div class="toggle-label-group">
                     <span class="toggle-label">Open as child tab</span>
@@ -553,6 +596,7 @@
 
         <div id="status"></div>
     </div>
+    <script src="browser-polyfill.js"></script>
     <script src="options.js"></script>
 </body>
 </html>

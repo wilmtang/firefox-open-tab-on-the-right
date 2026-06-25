@@ -13,6 +13,9 @@ export default {
     "package-lock.json",
     "web-ext-config.mjs",
     "tabmove.test.js",
+    "build.mjs",
+    "CHROMEWEBSTORE.md",
+    "dist",
     "e2e"
   ],
   // Command-specific options
