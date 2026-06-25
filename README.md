@@ -86,6 +86,7 @@ Install the dev dependencies once with `npm install`, then:
 | `npm test` | Fast unit tests for the tab-move logic (`tabmove.js`), no browser needed. |
 | `npm run test:e2e` | End-to-end tests that launch real Firefox via **geckodriver** + **selenium-webdriver**, install the packaged extension, and exercise the options UI, settings persistence, command registration, and tab reordering. |
 | `npm run test:e2e:chrome` | End-to-end tests that launch real Chrome via **puppeteer**, load `dist/chrome`, and exercise the Chrome options UI and tab reordering. |
+| `npm run test:e2e:all` | Runs both browser e2e suites. |
 | `npm run lint` | Runs `web-ext lint` against the extension. |
 | `npm run build` | Packages the extension into `web-ext-artifacts/`. |
 | `npm run build:all` | Builds unpacked Firefox and Chrome extension directories under `dist/`. |

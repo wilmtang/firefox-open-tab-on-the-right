@@ -1,6 +1,6 @@
 // Open a new tab immediately to the right of the active tab.
 function openTabToRight() {
-  browserAPI.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
+  return browserAPI.tabs.query({ active: true, currentWindow: true }).then(async (tabs) => {
     const activeTab = tabs[0];
     if (!activeTab) return;
 

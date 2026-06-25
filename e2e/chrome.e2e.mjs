@@ -1,7 +1,7 @@
 // End-to-end tests for the Chrome (MV3) build using Puppeteer.
 //
 // Drives a real Chrome instance with the unpacked extension loaded from dist/chrome/.
-// Tests ensure the extension loads, UI renders correctly, logic works, and shortcuts persist.
+// Tests ensure the extension loads, UI renders correctly, and background tab actions work.
 
 import { test, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -9,10 +9,6 @@ import puppeteer from 'puppeteer';
 import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const { computeTabMoves } = require('../tabmove.js');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -43,9 +39,18 @@ const getStorage = (key) => ext('return (await chrome.storage.local.get(__args.k
 const queryTabs = () => ext(`
   const tabs = await chrome.tabs.query({});
   return tabs
-    .map(t => ({ id: t.id, index: t.index, pinned: t.pinned, url: t.url }))
+    .map(t => ({ id: t.id, index: t.index, active: t.active, pinned: t.pinned, url: t.url }))
     .sort((a, b) => a.index - b.index);
 `);
+
+async function bg(fn, ...args) {
+  const target = await browser.waitForTarget(
+    t => t.type() === 'service_worker' && t.url().startsWith('chrome-extension://'),
+    { timeout: 5000 }
+  );
+  const worker = await target.worker();
+  return worker.evaluate(fn, ...args);
+}
 
 // The real checkbox is visually hidden (opacity:0); click the visible slider.
 const clickToggle = async (inputId) => {
@@ -95,6 +100,9 @@ after(async () => {
 
 // Restore a clean slate: clear storage, keep options page open.
 async function resetState() {
+  for (const page of await browser.pages()) {
+    if (page !== extPage) await page.close();
+  }
   await extPage.bringToFront();
   await extPage.goto(optionsUrl);
   await new Promise(r => setTimeout(r, 500));
@@ -173,7 +181,25 @@ test('tab-wrapping toggle is visible and functional', { timeout: 30000 }, async 
   assert.equal(isSelected, false, 'Toggle state should persist after reload');
 });
 
-test('move algorithm reorders real Chrome tab strip', { timeout: 40000 }, async () => {
+test('background open-tab action opens immediately to the right', { timeout: 40000 }, async () => {
+  const before = await queryTabs();
+  const active = before.find(t => t.active);
+
+  await bg(() => openTabToRight());
+  await extPage.waitForFunction(
+    async expected => (await chrome.tabs.query({})).length === expected,
+    {},
+    before.length + 1
+  );
+
+  const after = await queryTabs();
+  const opened = after.find(t => !before.some(old => old.id === t.id));
+  assert.ok(opened, 'new tab should exist');
+  assert.equal(opened.index, active.index + 1);
+  assert.equal(opened.active, true);
+});
+
+test('background move action reorders real Chrome tab strip', { timeout: 40000 }, async () => {
   // Create extra tabs
   await ext(`
     for (let i = 0; i < 3; i++) await chrome.tabs.create({ url: 'about:blank', active: false });
@@ -181,22 +207,16 @@ test('move algorithm reorders real Chrome tab strip', { timeout: 40000 }, async 
   `);
   await new Promise(r => setTimeout(r, 500));
 
-  // Move tab at index 1 → 'next' → should land at index 2
+  // Move-by-one: active options tab at index 0 moves 'next' → it lands at index 1.
   let tabs = await queryTabs();
-  const target = tabs.find(t => t.index === 1);
-  let moves = computeTabMoves([target], tabs, 'next', true);
-  for (const m of moves) {
-    await ext('await chrome.tabs.move(__args.id, { index: __args.index }); return true;', m);
-  }
+  const active = tabs.find(t => t.active);
+  await bg(() => moveTab('next'));
   tabs = await queryTabs();
-  assert.equal(tabs.find(t => t.id === target.id).index, 2, 'tab should move one slot right');
+  assert.equal(tabs.find(t => t.id === active.id).index, 1, 'active tab should move one slot right');
 
-  // Wrap: last tab → 'next' with wrap → should land at index 0
-  const last = tabs[tabs.length - 1];
-  moves = computeTabMoves([last], tabs, 'next', true);
-  for (const m of moves) {
-    await ext('await chrome.tabs.move(__args.id, { index: __args.index }); return true;', m);
-  }
+  // Wrap: move back to index 0, then 'prev' once more → it lands at the end.
+  await bg(() => moveTab('prev'));
+  await bg(() => moveTab('prev'));
   tabs = await queryTabs();
-  assert.equal(tabs.find(t => t.id === last.id).index, 0, 'last tab should wrap to the front');
+  assert.equal(tabs.find(t => t.id === active.id).index, tabs.length - 1, 'active tab should wrap to the end');
 });

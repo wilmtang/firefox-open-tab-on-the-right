@@ -19,10 +19,6 @@ import { execFileSync } from 'node:child_process';
 import { readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
-
-const require = createRequire(import.meta.url);
-const { computeTabMoves } = require('../tabmove.js');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
@@ -66,9 +62,13 @@ const getStorage = (key) => ext('return (await browser.storage.local.get(__args.
 const queryTabs = () => ext(`
   const tabs = await browser.tabs.query({});
   return tabs
-    .map(t => ({ id: t.id, index: t.index, pinned: t.pinned, url: t.url }))
+    .map(t => ({ id: t.id, index: t.index, active: t.active, pinned: t.pinned, url: t.url }))
     .sort((a, b) => a.index - b.index);
 `);
+const bg = (body, namedArgs = {}) => ext(`
+  const bg = await browser.runtime.getBackgroundPage();
+  ${body}
+`, namedArgs);
 
 // Restore a clean slate: one tab on the options page, empty storage, default commands.
 async function resetState() {
@@ -158,6 +158,20 @@ test('open-as-child toggle persists to storage and survives reload', { timeout: 
   assert.equal(await driver.findElement(By.id('child-tab-toggle')).isSelected(), true);
 });
 
+test('background open-tab action opens immediately to the right', { timeout: 40000 }, async () => {
+  const before = await queryTabs();
+  const active = before.find(t => t.active);
+
+  await bg('await bg.openTabToRight(); return true;');
+  await driver.wait(async () => (await queryTabs()).length === before.length + 1, 4000);
+
+  const after = await queryTabs();
+  const opened = after.find(t => !before.some(old => old.id === t.id));
+  assert.ok(opened, 'new tab should exist');
+  assert.equal(opened.index, active.index + 1);
+  assert.equal(opened.active, true);
+});
+
 test('recorder rejects an invalid typed shortcut and keeps the previous value', { timeout: 30000 }, async () => {
   const before = await shortcutOf('open-tab-right');
   const row = await rowFor('open-tab-right');
@@ -207,29 +221,23 @@ test('reset button restores the manifest default shortcut', { timeout: 30000 }, 
   assert.match(await shortcutOf('open-tab-right'), /Alt\+T$/);
 });
 
-test('move algorithm reorders a real Firefox tab strip as computed', { timeout: 40000 }, async () => {
+test('background move action reorders a real Firefox tab strip', { timeout: 40000 }, async () => {
   // Arrange a known layout: options tab (index 0) + three blanks (1,2,3).
   await ext(`
     for (let i = 0; i < 3; i++) await browser.tabs.create({ url: 'about:blank', active: false });
     return true;
   `);
 
-  // Move-by-one: take the tab at index 1 and move it 'next' → it should land at index 2.
+  // Move-by-one: active options tab at index 0 moves 'next' → it lands at index 1.
   let tabs = await queryTabs();
-  const target = tabs.find(t => t.index === 1);
-  let moves = computeTabMoves([target], tabs, 'next', true);
-  for (const m of moves) {
-    await ext('await browser.tabs.move(__args.id, { index: __args.index }); return true;', m);
-  }
+  const active = tabs.find(t => t.active);
+  await bg("await bg.moveTab('next'); return true;");
   tabs = await queryTabs();
-  assert.equal(tabs.find(t => t.id === target.id).index, 2, 'tab should move one slot right');
+  assert.equal(tabs.find(t => t.id === active.id).index, 1, 'active tab should move one slot right');
 
-  // Wrap: take the last tab and move 'next' with wrap → it should land at index 0.
-  const last = tabs[tabs.length - 1];
-  moves = computeTabMoves([last], tabs, 'next', true);
-  for (const m of moves) {
-    await ext('await browser.tabs.move(__args.id, { index: __args.index }); return true;', m);
-  }
+  // Wrap: move back to index 0, then 'prev' once more → it lands at the end.
+  await bg("await bg.moveTab('prev'); return true;");
+  await bg("await bg.moveTab('prev'); return true;");
   tabs = await queryTabs();
-  assert.equal(tabs.find(t => t.id === last.id).index, 0, 'last tab should wrap to the front');
+  assert.equal(tabs.find(t => t.id === active.id).index, tabs.length - 1, 'active tab should wrap to the end');
 });

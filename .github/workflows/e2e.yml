@@ -7,7 +7,7 @@ on:
 
 jobs:
   e2e:
-    name: Firefox End-to-End
+    name: Browser End-to-End
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -25,6 +25,6 @@ jobs:
         run: npm ci
 
       - name: Run end-to-end tests
-        run: npm run test:e2e
+        run: npm run test:e2e:all
         env:
           HEADLESS: '1'
