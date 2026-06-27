@@ -17,7 +17,7 @@ const ROOT = import.meta.dirname;
 // ── Shared manifest fields ────────────────────────────────────────────────────
 const shared = {
   name: 'Open Tab on the Right',
-  version: '2.1',
+  version: '2.2',
   description:
     'Opens a new tab to the right of the current active tab with a customizable shortcut.',
   icons: {
