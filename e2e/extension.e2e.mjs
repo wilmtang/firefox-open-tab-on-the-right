@@ -158,6 +158,37 @@ test('open-as-child toggle persists to storage and survives reload', { timeout: 
   assert.equal(await driver.findElement(By.id('child-tab-toggle')).isSelected(), true);
 });
 
+test('toolbar popup renders actions and Settings opens the add-ons manager', { timeout: 30000 }, async () => {
+  await driver.get(`moz-extension://${UUID}/popup.html`);
+
+  assert.equal((await driver.findElements(By.css('.action-row'))).length, 3);
+
+  // The open-tab row shows the live binding as per-key chips
+  // ([⌘][⌥][T] on Mac, [Ctrl][Alt][T] elsewhere).
+  const chips = await driver.findElements(By.css('#action-open-tab-right .key-chip'));
+  assert.ok(chips.length >= 2, 'bound command should render key chips');
+  assert.equal(await chips[chips.length - 1].getText(), 'T');
+
+  // Settings opens about:addons (Firefox embeds options_ui there) in a new tab.
+  const before = (await driver.getAllWindowHandles()).length;
+  await driver.findElement(By.id('open-settings')).click();
+  await driver.wait(async () => (await driver.getAllWindowHandles()).length === before + 1, 4000);
+});
+
+test('toolbar popup quick action opens a tab via the background message path', { timeout: 30000 }, async () => {
+  await driver.get(`moz-extension://${UUID}/popup.html`);
+  const before = await queryTabs();
+
+  await driver.findElement(By.id('action-open-tab-right')).click();
+  await driver.wait(async () => (await queryTabs()).length === before.length + 1, 4000);
+
+  const after = await queryTabs();
+  const opened = after.find(t => !before.some(old => old.id === t.id));
+  assert.ok(opened, 'new tab should exist');
+  assert.equal(opened.index, before.find(t => t.active).index + 1, 'opens right of the popup tab');
+  assert.equal(opened.active, true);
+});
+
 test('background open-tab action opens immediately to the right', { timeout: 40000 }, async () => {
   const before = await queryTabs();
   const active = before.find(t => t.active);

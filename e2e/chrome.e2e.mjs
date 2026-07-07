@@ -122,9 +122,13 @@ test('extension loads and registers three commands', { timeout: 30000 }, async (
   const ourNames = names.filter(n => !n.startsWith('_'));
   assert.deepEqual(ourNames, ['move-tab-next', 'move-tab-prev', 'open-tab-right']);
 
-  // open-tab-right might not have a default shortcut on Chrome due to strict validation rules
+  // The Chrome build ships Alt+T as the default (Ctrl+Alt+T is illegal on
+  // Chrome — Alt cannot be combined with Ctrl/Command/MacCtrl). Chrome only
+  // leaves it unbound if another extension already claimed it, which can't
+  // happen in this fresh profile.
   const openTabShortcut = await shortcutOf('open-tab-right');
   console.log('open-tab-right shortcut:', openTabShortcut || 'none');
+  assert.ok(openTabShortcut, 'open-tab-right should have a default shortcut bound');
 });
 
 test('options page shows Chrome shortcuts notice', { timeout: 30000 }, async () => {
@@ -179,6 +183,56 @@ test('tab-wrapping toggle is visible and functional', { timeout: 30000 }, async 
   
   isSelected = await extPage.evaluate(() => document.getElementById('tab-wrap-toggle').checked);
   assert.equal(isSelected, false, 'Toggle state should persist after reload');
+});
+
+test('toolbar popup renders actions and jumps to settings', { timeout: 30000 }, async () => {
+  const popupPage = await browser.newPage();
+  await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+  await new Promise(r => setTimeout(r, 500));
+
+  const rowCount = await popupPage.evaluate(() => document.querySelectorAll('.action-row').length);
+  assert.equal(rowCount, 3, 'popup should list all three quick actions');
+
+  // The open-tab row shows the live binding as per-key chips
+  // (Alt+T default → [Alt][T], or [⌥][T] on Mac).
+  const lastChip = await popupPage.evaluate(() => {
+    const chips = document.querySelectorAll('#action-open-tab-right .key-chip');
+    return chips.length ? chips[chips.length - 1].textContent : null;
+  });
+  assert.equal(lastChip, 'T', 'shortcut chips should show the bound default');
+
+  // Settings button jumps to the options page. openOptionsPage() reuses the
+  // already-open options tab (the harness keeps extPage open) rather than
+  // opening a second one, so assert that extPage's tab gains focus. Tab ids
+  // are the only reliable handle here: without the "tabs" permission,
+  // tabs.query() omits the url field entirely.
+  const optionsTabId = await extPage.evaluate(async () => (await chrome.tabs.getCurrent()).id);
+  await popupPage.click('#open-settings');
+  await extPage.waitForFunction(
+    async (id) => (await chrome.tabs.get(id)).active,
+    { polling: 100 },
+    optionsTabId
+  );
+});
+
+test('toolbar popup quick action opens a tab via the background message path', { timeout: 30000 }, async () => {
+  const popupPage = await browser.newPage();
+  await popupPage.goto(`chrome-extension://${extensionId}/popup.html`);
+  await new Promise(r => setTimeout(r, 500));
+
+  const before = await queryTabs();
+  await popupPage.click('#action-open-tab-right');
+
+  // The popup closes itself after sending, so assert on the new tab's identity
+  // rather than on tab counts or absolute indices.
+  await extPage.waitForFunction(
+    async (beforeIds) => {
+      const tabs = await chrome.tabs.query({});
+      return tabs.some(t => !beforeIds.includes(t.id) && t.active);
+    },
+    {},
+    before.map(t => t.id)
+  );
 });
 
 test('background open-tab action opens immediately to the right', { timeout: 40000 }, async () => {

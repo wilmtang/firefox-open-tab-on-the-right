@@ -17,7 +17,7 @@ const ROOT = import.meta.dirname;
 // ── Shared manifest fields ────────────────────────────────────────────────────
 const shared = {
   name: 'Open Tab on the Right',
-  version: '2.2',
+  version: '2.3',
   description:
     'Opens a new tab to the right of the current active tab with a customizable shortcut.',
   icons: {
@@ -45,6 +45,16 @@ const shared = {
   },
 };
 
+// Toolbar button popup. MV2 calls this browser_action, MV3 calls it action.
+const toolbarAction = {
+  default_title: 'Open Tab on the Right',
+  default_popup: 'popup.html',
+  default_icon: {
+    48: 'icon-48.png',
+    128: 'icon-128.png',
+  },
+};
+
 // ── Firefox manifest (MV2) ───────────────────────────────────────────────────
 function firefoxManifest() {
   return {
@@ -53,6 +63,7 @@ function firefoxManifest() {
     background: {
       scripts: ['browser-polyfill.js', 'tabmove.js', 'background.js'],
     },
+    browser_action: toolbarAction,
     browser_specific_settings: {
       gecko: {
         id: '{61a45ae9-6056-42fc-b02b-44c36005271d}',
@@ -76,14 +87,20 @@ function chromeManifest() {
     background: {
       service_worker: 'service-worker.js',
     },
+    action: toolbarAction,
   };
   
-  // Chrome strictly validates Mac shortcuts and will fail to load the unpacked extension
-  // if it suspects a conflict with reserved keys or has unsupported modifier combinations.
-  // Since we already direct Chrome users to chrome://extensions/shortcuts, it's safer
-  // to omit the default suggested keys and let them configure it manually.
+  // Chrome refuses to load an extension whose suggested_key pairs Alt with any
+  // Ctrl-like modifier (Ctrl+Alt is reserved for AltGr, and on Mac both
+  // Command+Alt and MacCtrl+Alt are rejected the same way — verified against
+  // Chrome for Testing). So the Firefox defaults Ctrl+Alt+T / Command+Alt+T
+  // cannot ship on Chrome. Alt+T is the closest legal combo and works on every
+  // platform (shown as ⌥T on Mac). If it conflicts with an existing binding,
+  // Chrome simply leaves the command unbound — it does not block installation.
   manifest.commands = JSON.parse(JSON.stringify(shared.commands));
-  delete manifest.commands['open-tab-right'].suggested_key;
+  manifest.commands['open-tab-right'].suggested_key = {
+    default: 'Alt+T',
+  };
   
   return manifest;
 }
@@ -95,6 +112,8 @@ const SHARED_FILES = [
   'background.js',
   'options.html',
   'options.js',
+  'popup.html',
+  'popup.js',
   'icon-48.png',
   'icon-128.png',
 ];

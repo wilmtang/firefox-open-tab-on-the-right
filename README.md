@@ -24,6 +24,7 @@ Chrome support is built from the same source with `npm run build:chrome`; Chrome
 - **Intuitive Tab Placement**: Unlike the default browser behavior, this extension ensures the new tab opens exactly to the right of where you are working.
 - **Child Tab Support on Firefox**: Compatible with vertical tab managers like **Tree Style Tab** and **Sidebery**. Enable the "Open as child tab" setting to automatically nest your newly created tabs under the active parent tab.
 - **Customizable Shortcuts**: Change the shortcut to whatever suits your workflow. Firefox supports this in the extension options; Chrome uses `chrome://extensions/shortcuts`.
+- **Toolbar Popup**: Click the extension icon for quick actions (new tab to the right, move tab left/right), a cheat sheet of your current shortcuts, and a one-click jump to the settings page.
 - **Modern UI**: A clean, premium settings page for easy configuration.
 
 ## 🔒 Privacy & Permissions
@@ -35,7 +36,7 @@ Keyboard shortcuts are handled entirely through the browser's built-in [Commands
 ## ⌨️ Default Shortcuts
 
 - **Firefox: open tab to the right** — macOS: `Cmd + Option + T`, Windows / Linux: `Ctrl + Alt + T`
-- **Chrome: open tab to the right** — no default; assign one at `chrome://extensions/shortcuts`.
+- **Chrome: open tab to the right** — `Alt + T` on all platforms (`Option + T` on macOS). Chrome forbids combining Alt with Ctrl/Cmd in extension shortcuts, so the Firefox default can't be used there. Change it anytime at `chrome://extensions/shortcuts`.
 - **Move tab left / right** — no default; assign your own in Firefox options or `chrome://extensions/shortcuts` (this avoids clashing with OS shortcuts like workspace switching).
 
 ## 🛠️ Local Installation & Testing

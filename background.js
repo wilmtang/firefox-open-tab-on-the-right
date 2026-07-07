@@ -75,3 +75,17 @@ browserAPI.commands.onCommand.addListener((command) => {
     moveTab('next');
   }
 });
+
+// ── Popup actions (popup.js sends one-shot { action } messages) ──
+// The popup closes itself right after sending, so the tab work has to run
+// here rather than in the popup's own context.
+browserAPI.runtime.onMessage.addListener((message) => {
+  if (!message || typeof message !== 'object') return;
+  if (message.action === 'open-tab-right') {
+    openTabToRight();
+  } else if (message.action === 'move-tab-prev') {
+    moveTab('prev');
+  } else if (message.action === 'move-tab-next') {
+    moveTab('next');
+  }
+});
