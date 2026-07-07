@@ -15,16 +15,17 @@ Get the Firefox version on the official **Firefox Add-ons (AMO)** store:
 
 👉 **[Install Open Tab on the Right](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)**
 
-Chrome support is built from the same source with `npm run build:chrome`; Chrome Web Store publishing is not automated yet.
+Chrome support is built from the same source with `npm run build:chrome`. Chrome Web Store publishing has a GitHub Actions pipeline (see [Automated Releases](#-automated-releases-cd) below) but requires one-time manual setup of API credentials before it can run.
 
 ---
 
 ## 🚀 Features
 
 - **Intuitive Tab Placement**: Unlike the default browser behavior, this extension ensures the new tab opens exactly to the right of where you are working.
+- **Works Entirely by Keyboard — No Pinning Required**: Every feature is driven by keyboard shortcuts through the browser's native commands system. You never need to pin the toolbar icon or click anything for daily use.
 - **Child Tab Support on Firefox**: Compatible with vertical tab managers like **Tree Style Tab** and **Sidebery**. Enable the "Open as child tab" setting to automatically nest your newly created tabs under the active parent tab.
 - **Customizable Shortcuts**: Change the shortcut to whatever suits your workflow. Firefox supports this in the extension options; Chrome uses `chrome://extensions/shortcuts`.
-- **Toolbar Popup**: Click the extension icon for quick actions (new tab to the right, move tab left/right), a cheat sheet of your current shortcuts, and a one-click jump to the settings page.
+- **Toolbar Popup (Optional)**: If you'd rather click than remember shortcuts, pin the icon for quick actions (new tab to the right, move tab left/right), a live cheat sheet of your current bindings, and a one-click jump to Settings. Purely a convenience — nothing breaks if it stays unpinned.
 - **Modern UI**: A clean, premium settings page for easy configuration.
 
 ## 🔒 Privacy & Permissions
@@ -100,28 +101,45 @@ E2E notes:
 
 ## 🚀 Automated Releases (CD)
 
-This repository is configured to automatically package, lint, test, and submit new Firefox versions to the Mozilla Add-ons (AMO) portal via GitHub Actions.
+This repository is configured to automatically package, lint, test, and submit new versions to both the Mozilla Add-ons (AMO) portal and the Chrome Web Store via GitHub Actions, triggered by pushing a `v*` git tag.
 
-### How the Zip file is created
-You do not need to manually create or upload a zip file anymore. In the GitHub Actions workflow, the official Mozilla `web-ext` tool reads the exclusion rules defined in `web-ext-config.mjs` (which ensures files like `README.md`, `.git`, etc., are left out) and packages your extension into a zip file in the background before submitting it to the Mozilla API.
+### Firefox → Mozilla Add-ons (AMO)
+
+`.github/workflows/release.yml` runs unit tests, Firefox e2e tests, and `web-ext lint`, then packages and submits the extension with the official `web-ext` tool. `web-ext` reads the exclusion rules in `web-ext-config.mjs` (which leaves out `README.md`, `.git`, etc.) and builds the zip itself — no manual packaging needed. Requires the `AMO_JWT_ISSUER` and `AMO_JWT_SECRET` repo secrets (from the [AMO Developer Hub](https://addons.mozilla.org/developers/addon/api/key/)).
+
+### Chrome → Chrome Web Store
+
+`.github/workflows/chrome-release.yml` runs unit tests and Chrome e2e tests, packages `dist/chrome` into a zip via `npm run package:chrome`, then uploads and publishes it with [`chrome-webstore-upload-cli`](https://github.com/fregante/chrome-webstore-upload-cli).
+
+This needs a **one-time manual setup** before it can run:
+
+1. **Publish the extension manually once** via the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) — CI can only update an *existing* listing, not create the first one. Upload the zip produced by `npm run package:chrome`. Chrome doesn't allow extensions to script its own store pages, so this step can't be automated; note the **Extension ID** shown on the item's page once it's created.
+2. **Get OAuth credentials** for the Chrome Web Store API by following the [chrome-webstore-upload-keys guide](https://github.com/fregante/chrome-webstore-upload-keys):
+   - Create a Google Cloud project and OAuth client (type: Desktop app), enable the Chrome Web Store API for it.
+   - Run `npx chrome-webstore-upload-keys` locally — it walks you through the OAuth flow and prints a `CLIENT_ID`, `CLIENT_SECRET`, and `REFRESH_TOKEN`.
+3. **Add four repo secrets** (Settings → Secrets and variables → Actions, or `gh secret set NAME` locally so the values never appear in chat/PRs):
+   - `CHROME_EXTENSION_ID` — the ID from step 1
+   - `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` — from step 2
+
+Once those secrets exist, every `v*` tag push publishes the new version to both stores automatically.
 
 ### How to release a new version
 
-1. **Update the version**: Increment the `"version"` string in `manifest.json` and `build.mjs` (e.g., from `"2.1"` to `"2.2"`).
+1. **Update the version**: Increment the `"version"` string in `manifest.json`, `build.mjs`, and `package.json` (e.g., from `"2.2"` to `"2.3"`).
 2. **Commit and push the change** to your main branch:
    ```bash
-   git add manifest.json build.mjs
-   git commit -m "Bump version to 2.2"
+   git add manifest.json build.mjs package.json
+   git commit -m "Bump version to 2.3"
    git push origin main
    ```
 3. **Create and push a Git Tag**:
-   Create a release tag matching the pattern `v*` (e.g., `v2.2`) and push it:
+   Create a release tag matching the pattern `v*` (e.g., `v2.3`) and push it:
    ```bash
-   git tag v2.2
-   git push origin v2.2
+   git tag v2.3
+   git push origin v2.3
    ```
 
-Pushing this tag will automatically trigger the GitHub Actions workflow to build, lint, and submit the new version to the Mozilla Developer Portal.
+Pushing this tag triggers both GitHub Actions workflows to build, test, and submit the new version to the Mozilla Developer Portal and (once the secrets above are configured) the Chrome Web Store.
 
 ## 📄 License
 

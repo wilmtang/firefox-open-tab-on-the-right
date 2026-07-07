@@ -12,7 +12,8 @@
     "build": "web-ext build",
     "build:firefox": "node build.mjs firefox",
     "build:chrome": "node build.mjs chrome",
-    "build:all": "node build.mjs all"
+    "build:all": "node build.mjs all",
+    "package:chrome": "node build.mjs chrome && rm -f dist/chrome-extension.zip && cd dist/chrome && zip -r -X -q ../chrome-extension.zip . -x '.*' && cd ../.."
   },
   "devDependencies": {
     "geckodriver": "5.0.0",
