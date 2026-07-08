@@ -2,20 +2,26 @@
 
 A lightweight Firefox and Chrome extension that opens a new tab immediately to the right of your current active tab.
 
-[![Install Extension](https://img.shields.io/badge/Firefox-Install%20Extension-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
+[![Install for Firefox](https://img.shields.io/badge/Firefox-Install%20Extension-FF7139?style=for-the-badge&logo=firefox-browser&logoColor=white)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
+[![Install for Chrome](https://img.shields.io/badge/Chrome-Install%20Extension-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)](https://chromewebstore.google.com/detail/open-tab-on-the-right/ckhnejcbfnplejlcnagenldapeeaecie)
 
 [![Mozilla Add-on Version](https://img.shields.io/amo/v/open-tab-on-the-right?color=orange&logo=firefox-browser&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
 [![Mozilla Add-on Users](https://img.shields.io/amo/users/open-tab-on-the-right?color=blue&logo=firefox-browser&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
 [![Mozilla Add-on Weekly Downloads](https://img.shields.io/amo/dw/open-tab-on-the-right?color=green&logo=firefox-browser&logoColor=white&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
 [![Mozilla Add-on Rating](https://img.shields.io/amo/rating/open-tab-on-the-right?color=yellow&style=flat-square)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)
 
+[![Chrome Web Store Version](https://img.shields.io/chrome-web-store/v/ckhnejcbfnplejlcnagenldapeeaecie?color=orange&logo=googlechrome&logoColor=white&style=flat-square)](https://chromewebstore.google.com/detail/open-tab-on-the-right/ckhnejcbfnplejlcnagenldapeeaecie)
+[![Chrome Web Store Users](https://img.shields.io/chrome-web-store/users/ckhnejcbfnplejlcnagenldapeeaecie?color=blue&logo=googlechrome&logoColor=white&style=flat-square)](https://chromewebstore.google.com/detail/open-tab-on-the-right/ckhnejcbfnplejlcnagenldapeeaecie)
+[![Chrome Web Store Rating](https://img.shields.io/chrome-web-store/rating/ckhnejcbfnplejlcnagenldapeeaecie?color=yellow&logo=googlechrome&logoColor=white&style=flat-square)](https://chromewebstore.google.com/detail/open-tab-on-the-right/ckhnejcbfnplejlcnagenldapeeaecie)
+
 ## 📥 Installation
 
-Get the Firefox version on the official **Firefox Add-ons (AMO)** store:
+Get it from the official browser stores — both builds come from the same source:
 
-👉 **[Install Open Tab on the Right](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)**
+- 🦊 **Firefox** → **[Firefox Add-ons (AMO)](https://addons.mozilla.org/en-US/firefox/addon/open-tab-on-the-right/)**
+- 🌐 **Chrome** → **[Chrome Web Store](https://chromewebstore.google.com/detail/open-tab-on-the-right/ckhnejcbfnplejlcnagenldapeeaecie)**
 
-Chrome support is built from the same source with `npm run build:chrome`. Chrome Web Store publishing has a GitHub Actions pipeline (see [Automated Releases](#-automated-releases-cd) below) but requires one-time manual setup of API credentials before it can run.
+New versions are published to both stores automatically via GitHub Actions (see [Automated Releases](#-automated-releases-cd) below).
 
 ---
 
@@ -109,17 +115,15 @@ This repository is configured to automatically package, lint, test, and submit n
 
 ### Chrome → Chrome Web Store
 
-`.github/workflows/chrome-release.yml` runs unit tests and Chrome e2e tests, packages `dist/chrome` into a zip via `npm run package:chrome`, then uploads and publishes it with [`chrome-webstore-upload-cli`](https://github.com/fregante/chrome-webstore-upload-cli).
+The extension is **live** on the [Chrome Web Store](https://chromewebstore.google.com/detail/open-tab-on-the-right/ckhnejcbfnplejlcnagenldapeeaecie). `.github/workflows/chrome-release.yml` runs unit tests and Chrome e2e tests, packages `dist/chrome` into a zip via `npm run package:chrome`, then uploads and publishes it with [`chrome-webstore-upload-cli`](https://github.com/fregante/chrome-webstore-upload-cli).
 
-This needs a **one-time manual setup** before it can run:
+The public extension ID (`ckhnejcbfnplejlcnagenldapeeaecie`) is hardcoded in the workflow as `EXTENSION_ID`, so the only remaining setup is the OAuth credentials that let CI push to the store:
 
-1. **Publish the extension manually once** via the [Chrome Web Store Developer Dashboard](https://chrome.google.com/webstore/devconsole) — CI can only update an *existing* listing, not create the first one. Upload the zip produced by `npm run package:chrome`. Chrome doesn't allow extensions to script its own store pages, so this step can't be automated; note the **Extension ID** shown on the item's page once it's created.
-2. **Get OAuth credentials** for the Chrome Web Store API by following the [chrome-webstore-upload-keys guide](https://github.com/fregante/chrome-webstore-upload-keys):
+1. **Get OAuth credentials** for the Chrome Web Store API by following the [chrome-webstore-upload-keys guide](https://github.com/fregante/chrome-webstore-upload-keys):
    - Create a Google Cloud project and OAuth client (type: Desktop app), enable the Chrome Web Store API for it.
    - Run `npx chrome-webstore-upload-keys` locally — it walks you through the OAuth flow and prints a `CLIENT_ID`, `CLIENT_SECRET`, and `REFRESH_TOKEN`.
-3. **Add four repo secrets** (Settings → Secrets and variables → Actions, or `gh secret set NAME` locally so the values never appear in chat/PRs):
-   - `CHROME_EXTENSION_ID` — the ID from step 1
-   - `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` — from step 2
+2. **Add three repo secrets** (Settings → Secrets and variables → Actions, or `gh secret set NAME` locally so the values never appear in chat/PRs):
+   - `CHROME_CLIENT_ID`, `CHROME_CLIENT_SECRET`, `CHROME_REFRESH_TOKEN` — from step 1
 
 Once those secrets exist, every `v*` tag push publishes the new version to both stores automatically.
 
